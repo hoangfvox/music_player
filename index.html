@@ -388,8 +388,10 @@
 					this.render();
 
 					// Hiển thị trạng thái ban đầu của button repeat và random
-					randomBtn.classList.toggle('active', this.isRandom);
-					repeatBtn.classList.toggle('active', this.isRepeat);
+					if ((this.config.isRandom) || (this.config.isRepeat)) {
+						randomBtn.classList.toggle('active', this.isRandom);
+						repeatBtn.classList.toggle('active', this.isRepeat);
+					}
 				}
 			}
 			// Dark themes
