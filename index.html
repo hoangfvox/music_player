@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+	<head>
+		<meta charset="UTF-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Music player</title>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" integrity="sha512-HK5fgLBL+xu6dm/Ii3z4xhlSUyZgTT9tuc/hSrtw6uzJOvgRr2a9jyxxT1ely+B+xFAmJKVSTbpM/CuL7qxO8w==" crossorigin="anonymous" />
+		<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+		<link rel="stylesheet" href="./assets/fonts/fontawesome-free-5.15.4-web/css/all.min.css">
+		<link rel="shortcut icon" href="#">
+		
+		
+		<link rel="stylesheet" href="./assets/main.css">
+	</head>
+	<body>
+
+		<div class="player">
+			<!-- Dashboard -->
+			<div class="dashboard">
+				<!-- Header -->
+				<header>
+					<h4>Now playing:</h4>
+					<h2>String 57th & 9th</h2>
+				</header>
+
+				<!-- CD -->
+				<div class="cd">
+					<div class="cd-thumb" style="background-image: url('./assets/img/supersentai.jpg')"></div>
+				</div>
+
+				<!-- Control -->
+				<div class="control">
+					<div class="btn btn-repeat">
+						<i class="fas fa-redo"></i>
+					</div>
+					<div class="btn btn-prev">
+						<i class="fas fa-step-backward"></i>
+					</div>
+					<div class="btn btn-toggle-play">
+						<i class="fas fa-pause icon-pause"></i>
+						<i class="fas fa-play icon-play"></i>
+					</div>
+					<div class="btn btn-next">
+						<i class="fas fa-step-forward"></i>
+					</div>
+					<div class="btn btn-random">
+						<i class="fas fa-random"></i>
+					</div>
+					</div>
+				
+					<input id="progress" class="progress" type="range" value="0" step="1" min="0" max="100">
+				
+					<audio id="audio" src=""></audio>
+				</div>
+
+			<!-- Playlist -->
+			<div class="playlist"></div>
+			<div id="toggleBtn"></div>
+		</div>
+
+		<!-- Design from: https://static.collectui.com/shots/3671744/musicloud-revolutionary-app-for-music-streaming-large -->
+		<script>
+			// Một số bài hát có thể bị lỗi do liên kết bị hỏng. Vui lòng thay thế liên kết khác để có thể phát
+			// Some songs may be faulty due to broken links. Please replace another link so that it can be played
+			/*
+			1. Render songs
+			2. Scroll top
+			3. Play / pause / seek (tua)
+			4. CD rotate
+			5. Next / prev
+			6. Random
+			7. Next / Repeat when ended
+			8. Active song
+			9. Scroll active song into view
+			10. Play song when click
+			*/
+			const $ = document.querySelector.bind(document);
+			const $$ = document.querySelectorAll.bind(document);
+
+			const PLAYER_STORAGE_KEY = 'F8_PLAYER'
+
+			const player = $('.player')
+			const cd = $('.cd')
+			const heading = $('header h2')
+			const cdThumb = $('.cd-thumb')
+			const audio = $('#audio')
+			const playBtn = $('.btn-toggle-play')
+			const progress = $('#progress')
+			const prevBtn = $('.btn-prev')
+			const nextBtn = $('.btn-next')
+			const randomBtn = $('.btn-random')
+			const repeatBtn = $('.btn-repeat')
+			const playlist = $('.playlist')
+
+			const app = {
+				currentIndex: 0,
+				isPlaying: false,
+				isRandom: false,
+				isRepeat: false,
+				// isHear: [false, false, false, false, false, false, false, false, false, false, false],
+				config: JSON.parse(localStorage.getItem(PLAYER_STORAGE_KEY)) || {},
+				songs: [
+					{
+						name: "Hyakujuu Sentai Gaoranger",
+						singer: "Yukio Yamgata",
+						path: "./assets/music/Gaoranger.mp3",
+						image: "./assets/img/Gaoranger.jpg"
+					},
+					{
+						name: "Ninpuu Sentai Hurricaneger",
+						singer: "Takatori Hideaki",
+						path: "./assets/music/Hurricanger.mp3",
+						image: "./assets/img/Hurricanger.jpg"
+					},
+					{
+						name: "Bakuryuu Sentai Abaranger",
+						singer: "Masaaki Endoh",
+						path: "./assets/music/Abaranger.mp3",
+						image: "./assets/img/Abaranger.jpg"
+					},
+					{
+						name: "Tokusou Sentai Dekaranger",
+						singer: "Psychic Lover",
+						path: "./assets/music/Dekaranger.mp3",
+						image: "./assets/img/Dekaranger.jpg"
+					},
+					{
+						name: "Mahou Sentai Magiranger",
+						singer: "Takafumi Iwasaki",
+						path: "./assets/music/Magiranger.mp3",
+						image: "./assets/img/Magiranger.png"
+					},
+					{
+						name: "GoGo Sentai Boukenger",
+						singer: "NoB",
+						path: "./assets/music/Boukenger.mp3",
+						image: "./assets/img/Boukenger.jpg"
+					},
+					{
+						name: "Juken Sentai Gekiranger",
+						singer: "Tanimoto Takayyoshi",
+						path: "./assets/music/Gekiranger.mp3",
+						image: "./assets/img/Gekiranger.png"
+					},
+					{
+						name: "Engine Sentai Go-onger",
+						singer: "Hideyuki Takahashi",
+						path: "./assets/music/Go_onger.mp3",
+						image: "./assets/img/Go_onger.jpg"
+					},
+					{
+						name: "Samurai Sentai Shinkenger",
+						singer: "Fujibayashi Shoko",
+						path: "./assets/music/Shinkenger.mp3",
+						image: "./assets/img/Shinkenger.jpg"
+					},
+					{
+						name: "Tensou Sentai Goseiger",
+						singer: "NoB",
+						path: "./assets/music/Goseiger.mp3",
+						image: "./assets/img/Goseiger.jpg"
+					},
+					{
+						name: "Kaizoku Sentai Gokaiger",
+						singer: "Tsuyoshi Matsubara",
+						path: "./assets/music/Gokaiger.mp3",
+						image: "./assets/img/Gokaiger.jpg"
+					}
+				],
+				setConfig: function(key, value) {
+					this.config[key] = value;
+					localStorage.setItem(PLAYER_STORAGE_KEY, JSON.stringify(this.config))
+				},
+				render: function() { //kết xuất, thông dịch
+					const htmls = this.songs.map((song, index) => {
+						return `
+						<div class="song ${index === this.currentIndex ? 'active' : ''}" data-index="${index}">
+							<div class="thumb" style="background-image: url('${song.image}')"></div>
+							<div class="body">
+								<h3 class="title">${song.name}</h3>
+								<p class="author">${song.singer}</p>
+							</div>
+							<div class="option">
+								<i class="fas fa-ellipsis-h"></i>
+							</div>
+						</div>
+						`
+					})
+					playlist.innerHTML = htmls.join('');
+
+					this.setConfig('currentIndex', this.currentIndex);
+				},
+				defineProperties: function() {
+					Object.defineProperty(this, 'currentSong', {
+						get: function() {
+							return this.songs[this.currentIndex];
+						}
+					})
+				},
+				handleEvents: function() {
+					const _this = this;
+					const cdWidth = cd.offsetWidth;
+
+					// Xử lý CD quay / dừng
+					const cdThumbAnimate = cdThumb.animate([
+						{ transform: 'rotate(360deg)' }
+					], {
+						duration: 10000, //10 seconds
+						iterations: Infinity
+					})
+
+					cdThumbAnimate.pause();
+
+					// Xử lý phóng to / thu nhỏ CD
+					document.onscroll = function() {
+						const scrollTop = window.scrollY || document.documentElement.scrollTop;
+						const newCdWidth = cdWidth - scrollTop;
+
+						cd.style.width = newCdWidth > 0 ? newCdWidth + 'px' : 0;
+						cd.style.opacity = newCdWidth / cdWidth;
+					}
+
+					// Xử lý khi click play
+					playBtn.onclick = function() {
+						if(_this.isPlaying) {
+							audio.pause();
+						} else {
+							audio.play();
+						}
+					}
+
+					// Khi song được play
+					audio.onplay = function() {
+						_this.isPlaying = true;
+						player.classList.add('playing');
+						cdThumbAnimate.play();
+						// _this.setConfig('currentIndex', _this.currentIndex);
+					}
+
+					// Khi song bị pause
+					audio.onpause = function() {
+						_this.isPlaying = false;
+						player.classList.remove('playing');
+						cdThumbAnimate.pause();
+					}
+
+					// Khi tiến độ bài hát thay đổi
+					audio.ontimeupdate = function() {
+						if (audio.duration) {
+							const progresPercent = Math.floor(audio.currentTime / audio.duration * 100);
+							progress.value = progresPercent;
+						}
+						
+					}
+
+					// Xử lý khi tua song
+					progress.onchange = function(e) {
+						const seekTime = audio.duration * e.target.value / 100;
+						audio.currentTime = seekTime;
+					}
+
+					// Khi next song
+					nextBtn.onclick = function() {
+						if(_this.isRandom) {
+							_this.playRandomSong();
+						} else {
+							_this.nextSong();
+						}
+						audio.play();
+						_this.render();
+						_this.scrollToActiveSong();
+					}
+					
+					// Khi prev song
+					prevBtn.onclick = function() {
+						if(_this.isRandom) {
+							_this.playRandomSong();
+						} else {
+							_this.prevSong();
+						}
+						audio.play();
+						_this.render();
+						_this.scrollToActiveSong();
+					}
+
+					// Xử lý bật / tắt random song
+					randomBtn.onclick = function() {
+						_this.isRandom = !_this.isRandom;
+						_this.setConfig('isRandom', _this.isRandom);
+						randomBtn.classList.toggle('active', _this.isRandom);
+					}
+
+					// Xử lý lặp lại một song
+					repeatBtn.onclick = function() {
+						_this.isRepeat = !_this.isRepeat;
+						_this.setConfig('isRepeat', _this.isRepeat);
+						repeatBtn.classList.toggle('active', _this.isRepeat);
+					}
+
+					// Xử lý next song khi audio ended
+					audio.onended = function() {
+						if (_this.isRepeat) {
+							audio.play();
+						} else {
+							nextBtn.click();
+						}
+					}
+
+					// Lắng nghe hành vi click vào playlist
+					playlist.onclick = function(e) {
+						const songNode = e.target.closest('.song:not(.active)')
+
+						if (songNode || e.target.closest('.option')) {
+							//Xử lý khi click vào song
+							if (songNode) {
+								_this.currentIndex = Number(songNode.dataset.index)
+								_this.loadCurrentSong()
+								_this.render()
+								audio.play()
+							}
+
+							// Xử lý khi vào song
+							if (e.target.closest('.option')) {
+
+							}
+						}
+					}
+				},
+				scrollToActiveSong: function() {
+					setTimeout(() => {
+						$('.song.active').scrollIntoView({
+							behavior: 'smooth',
+							block: 'nearest'
+						});
+					}, 300)
+				},
+				loadCurrentSong: function() {
+					heading.textContent = this.currentSong.name;
+					cdThumb.style.backgroundImage = `url('${this.currentSong.image}')`;
+					audio.src = this.currentSong.path
+				},
+				loadConfig: function() {
+					this.isRandom = this.config.isRandom;
+					this.isRepeat = this.config.isRepeat;
+					if (typeof this.config.currentIndex !== "undefined") this.currentIndex = this.config.currentIndex;
+					// this.isHear = this.config.isHear;
+					isDarkMode = this.config.isDarkMode;
+					
+				},
+				nextSong: function() {
+					this.currentIndex++;
+					if (this.currentIndex >= this.songs.length) {
+						this.currentIndex = 0;
+					}
+					this.loadCurrentSong();
+				},
+				prevSong: function() {
+					this.currentIndex--;
+					if (this.currentIndex < 0) {
+						this.currentIndex = this.songs.length - 1;
+					}
+					this.loadCurrentSong();
+				},
+				playRandomSong: function() {
+					let newIndex;
+					do {
+						newIndex = Math.floor(Math.random() * this.songs.length)
+					} while (newIndex === this.currentIndex)
+
+					this.currentIndex = newIndex;
+					this.loadCurrentSong();
+				},
+				start: function() {
+					// Gán cấu hình từ config vào ứng dụng
+					this.loadConfig();
+
+					// Định nghĩa các thuộc tính cho object
+					this.defineProperties();
+
+					// Lắng nghe / xử lý các sự kiện
+					this.handleEvents();
+
+					// Tải thông tin bài hát đầu tiên vài UI khi chạy ứng dụng
+					this.loadCurrentSong();
+
+					// Render playlist
+					this.render();
+
+					// Hiển thị trạng thái ban đầu của button repeat và random
+					randomBtn.classList.toggle('active', this.isRandom);
+					repeatBtn.classList.toggle('active', this.isRepeat);
+				}
+			}
+			// Dark themes
+			function setTheme(isLight = true) {
+				const theme = isLight ? 'light' : 'dark';
+				localStorage.setItem('theme', theme);
+			}
+			function loadTheme() {
+				// Lấy giá trị của theme đã được lưu trong localStorage
+				// Nếu không có thì mặc định là 'light'
+				const theme = localStorage.getItem('theme') || 'light';
+				// Thay đổi vị trí của nút toggle nếu là dark mode
+				if (theme !== 'light') {
+					document.getElementById('toggleBtn').classList.add('active');
+				}
+				// Chọn 1 trong 3 cách load bên dưới phù hợp với cách bạn dùng
+				// load cho cách 1: dùng css variable
+				document.querySelector(':root').setAttribute('data-theme', theme);
+			}	
+			window.onload = function () {
+				loadTheme();
+				const themeBtn = document.getElementById('toggleBtn');
+				themeBtn.addEventListener('click', function () {
+					// Lấy thuộc tính data-theme
+					const root = document.querySelector(':root');
+					const isLightMode = root.getAttribute('data-theme') === 'dark' ? false : true;
+					// toggle theme mode
+					if (isLightMode) {
+						root.setAttribute('data-theme', 'dark');
+					} else {
+						root.setAttribute('data-theme', 'light');
+					}
+					// thay đổi vị trí của button
+					this.classList.toggle('active');
+					setTheme(!isLightMode);
+				});
+			};
+			app.start();
+			
+		</script>
+	</body>
+</html>
