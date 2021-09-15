@@ -56,7 +56,7 @@ html {
     top: 0;
     width: 100%;
     max-width: 480px;
-    border-bottom: 1px solid #ebebeb;
+    box-shadow: var(--box-shadow);
 }
 
     /* HEADER */
@@ -167,8 +167,8 @@ header h2 {
     opacity: 0.8;
 }
 
-    .song.active .option,
-    .song.active .author,
+.song.active .option,
+.song.active .author,
 .song.active .title {
     color: #fff;
 }
@@ -197,9 +197,34 @@ header h2 {
 }
 
 .song .option {
-    padding: 16px 8px;
-    color: #999;
+    padding: 5px 8px;
     font-size: 18px;
+    display: flex;
+    align-items: center;
+    background-color: var(--bg-color-primary);
+    border-radius: 20px;
+    box-shadow: var(--box-shadow);
+    list-style: none;
+    display: none;
+}
+
+.song.active .option {
+    display: block;
+}
+
+.option-item {
+    float: left;
+    display: flex;
+}
+
+.option-link {
+    text-decoration: none;
+    padding: 5px 10px;
+    color: var(--text-color);
+}
+
+.option-link .heart {
+    color: var(--primary-color);
 }
 
     /* Theme */
@@ -220,11 +245,40 @@ header h2 {
     bottom: 2px;
     width: 36px;
     height: 36px;
-    background-color: #fff;
+    background-color: #eee;
     border-radius: 50%;
     cursor: pointer;
     transition: all 0.35s;
 }
+#toggleBtn .toggle-icon {
+    width: 80px;
+    height: 40px;
+    display: flex;
+    justify-content: space-around;
+    
+}
+.toggle-light,
+.toggle-dark {
+    font-size: 25px;
+}
+.toggle-light {
+    padding: 8px 10px 8px 5px;
+    background-color: #fff;
+    border-radius: 20px
+}
+.toggle-dark {
+    padding: 8px 5px 8px 10px;
+    color: orange;
+}
 #toggleBtn.active::before {
     transform: translateX(40px);
+}
+#toggleBtn.active .toggle-light {
+    background-color: transparent;
+    color: #fff;
+}
+#toggleBtn.active .toggle-dark {
+    background-color: #333;
+    border-radius: 20px;
+    color: #000;
 }
